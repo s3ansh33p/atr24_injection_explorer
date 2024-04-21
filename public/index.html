@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Directory</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: darkblue;
+            color: white;
+            margin: 10px;
+        }
+        input, button {
+            padding: 5px;
+            border: none;
+        }
+        input {
+            max-width: calc(100% - 200px);
+            width: 100%;
+        }
+        button {
+            background-color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        form {
+            margin-bottom: 10px;
+        }
+        #status {
+            font-weight: bold;
+        }
+        .error {
+            color: yellow;
+        }
+        @media screen and (max-width: 500px){
+            input {
+                max-width: -webkit-fill-available;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Staff Directory</h1>
+    <form onsubmit="return submitQuery()">
+        <label for="query">Enter a query:</label>
+        <input type="text" id="query" name="query">
+        <button type="submit">Submit</button>
+    </form>
+    <div id="status"></div>
+    <div id="names"></div>
+    <script>
+        function submitQuery() {
+            const query = document.getElementById('query').value;
+            const statusEl = document.getElementById('status');
+            const namesEl = document.getElementById('names');
+            if (!query) {
+                return false;
+            }
+            fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        namesEl.innerHTML = '';
+                        statusEl.innerHTML = data.error;
+                        statusEl.classList.add('error');
+                        return;
+                    }
+                    const names = data.rows.map(row => row.name);
+                    namesEl.innerHTML = names.join('<br>');
+                    statusEl.innerHTML = `Found ${names.length} record${names.length === 1 ? '' : 's'}`;
+                    statusEl.classList.remove('error');
+                });
+            return false;
+        }
+    </script>
+</body>
+</html>
